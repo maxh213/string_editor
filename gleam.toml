@@ -1,19 +1,20 @@
 name = "string_editor"
 version = "1.0.0"
 
-# Fill out these fields if you intend to generate HTML documentation or publish
-# your project to the Hex package manager.
-#
-# description = ""
-# licences = ["Apache-2.0"]
-# repository = { type = "github", user = "", repo = "" }
-# links = [{ title = "Website", href = "" }]
+description = "A simple and efficient Gleam library for string manipulation and extraction. Extract substrings before, after, or between specific patterns with ease."
+licences = ["Apache-2.0"]
+repository = { type = "github", user = "maxh213", repo = "string_editor" }
+links = [
+  { title = "Repository", href = "https://github.com/maxh213/string_editor" }
+]
 #
 # For a full reference of all the available options, you can have a look at
 # https://gleam.run/writing-gleam/gleam-toml/.
 
+gleam = ">= 1.0.0 and < 2.0.0"
+
 [dependencies]
-gleam_stdlib = ">= 0.44.0 and < 2.0.0"
+gleam_stdlib = ">= 0.34.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"
