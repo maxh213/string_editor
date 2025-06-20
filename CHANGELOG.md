@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to hex will be documented in this file.
+All notable changes to string_editor will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
@@ -8,17 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2025-01-20
 
 ### Added
-- Initial release of hex string editor
-- Core string manipulation functions:
-  - `uppercase()` - Convert string to uppercase
-  - `lowercase()` - Convert string to lowercase
-  - `reverse()` - Reverse string characters
-  - `trim()` - Remove leading/trailing whitespace
-  - `titleCase()` - Convert to title case
-  - `camelCase()` - Convert to camelCase
-  - `snakeCase()` - Convert to snake_case
-  - `kebabCase()` - Convert to kebab-case
-  - `pascalCase()` - Convert to PascalCase
+- Initial release of string_editor for Gleam
+- Core string extraction functions:
+  - `before()` - Extract text before first occurrence of pattern
+  - `after()` - Extract text after first occurrence of pattern
+  - `between()` - Extract text between two patterns
+  - `count()` - Count occurrences of pattern in string
+- Indexed extraction functions:
+  - `before_at()` - Extract text before nth occurrence of pattern
+  - `after_at()` - Extract text after nth occurrence of pattern
+  - `between_at()` - Extract text between nth occurrence of start and next end pattern
+- Batch extraction functions:
+  - `before_all()` - Extract all text segments before each pattern occurrence
+  - `after_all()` - Extract all text segments after each pattern occurrence
+  - `between_all()` - Extract all text segments between pattern pairs
 - Comprehensive test suite
-- TypeScript support with strict typing
-- ESLint and Prettier configuration
+- Full documentation with usage examples
+- Published to Hex package manager
