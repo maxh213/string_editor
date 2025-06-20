@@ -1,7 +1,7 @@
-import gleam/string
-import gleam/result
-import gleam/list
 import gleam/int
+import gleam/list
+import gleam/result
+import gleam/string
 
 /// Returns the part of a string before the first occurrence of a given substring.
 ///
@@ -101,7 +101,11 @@ pub fn count(string: String, of pattern: String) -> Int {
 ///   > before_at("hello world", on: " ", at: 5)
 ///   Error(Nil)
 ///
-pub fn before_at(string: String, on pattern: String, at index: Int) -> Result(String, Nil) {
+pub fn before_at(
+  string: String,
+  on pattern: String,
+  at index: Int,
+) -> Result(String, Nil) {
   case pattern == "" || index < 0 {
     True -> Error(Nil)
     False -> {
@@ -131,7 +135,11 @@ pub fn before_at(string: String, on pattern: String, at index: Int) -> Result(St
 ///   > after_at("hello world", on: " ", at: 5)
 ///   Error(Nil)
 ///
-pub fn after_at(string: String, on pattern: String, at index: Int) -> Result(String, Nil) {
+pub fn after_at(
+  string: String,
+  on pattern: String,
+  at index: Int,
+) -> Result(String, Nil) {
   case pattern == "" || index < 0 {
     True -> Error(Nil)
     False -> {
