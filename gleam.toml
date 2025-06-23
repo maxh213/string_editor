@@ -6,6 +6,8 @@ licences = ["Apache-2.0"]
 repository = { type = "github", user = "maxh213", repo = "string_editor" }
 links = [
   { title = "Repository", href = "https://github.com/maxh213/string_editor" }
+  { title = "Changelog", href = "https://github.com/maxh213/string_editor/blob/main/CHANGELOG.md" }
+
 ]
 #
 # For a full reference of all the available options, you can have a look at
