@@ -5,6 +5,13 @@ All notable changes to string_editor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.0.4] - 2026-06-11
+
+### Fixed
+- `before`, `after`, and `between` now consistently return `Error(Nil)` for an
+  empty pattern on all targets. Previously the result was target-dependent:
+  `Error(Nil)` on Erlang but `Ok` on JavaScript.
+
 ## [1.0.3] - 2026-06-11
 
 ### Changed

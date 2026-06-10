@@ -5,7 +5,7 @@ import gleam/string
 
 /// Returns the part of a string before the first occurrence of a given substring.
 ///
-/// If the substring is not found, it returns `Error(Nil)`.
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
 ///
 /// ## Examples
 ///
@@ -16,14 +16,18 @@ import gleam/string
 ///   Error(Nil)
 ///
 pub fn before(string: String, on pattern: String) -> Result(String, Nil) {
-  string
-  |> string.split_once(on: pattern)
-  |> result.map(fn(parts) { parts.0 })
+  case pattern {
+    "" -> Error(Nil)
+    _ ->
+      string
+      |> string.split_once(on: pattern)
+      |> result.map(fn(parts) { parts.0 })
+  }
 }
 
 /// Returns the part of a string after the first occurrence of a given substring.
 ///
-/// If the substring is not found, it returns `Error(Nil)`.
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
 ///
 /// ## Examples
 ///
@@ -34,16 +38,20 @@ pub fn before(string: String, on pattern: String) -> Result(String, Nil) {
 ///   Error(Nil)
 ///
 pub fn after(string: String, on pattern: String) -> Result(String, Nil) {
-  string
-  |> string.split_once(on: pattern)
-  |> result.map(fn(parts) { parts.1 })
+  case pattern {
+    "" -> Error(Nil)
+    _ ->
+      string
+      |> string.split_once(on: pattern)
+      |> result.map(fn(parts) { parts.1 })
+  }
 }
 
 /// Returns the part of a string between two given substrings.
 ///
 /// It finds the first occurrence of `start` and then the first
 /// occurrence of `end` after `start`. If either is not found in the
-/// correct order, it returns `Error(Nil)`.
+/// correct order, or is empty, it returns `Error(Nil)`.
 ///
 /// ## Examples
 ///
