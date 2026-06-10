@@ -1,22 +1,21 @@
 name = "string_editor"
-version = "1.0.2"
+version = "1.0.3"
 
 description = "A simple and efficient Gleam library for string manipulation and extraction. Extract substrings before, after, or between specific patterns with ease."
 licences = ["Apache-2.0"]
 repository = { type = "github", user = "maxh213", repo = "string_editor" }
 links = [
-  { title = "Repository", href = "https://github.com/maxh213/string_editor" }
-  { title = "Changelog", href = "https://github.com/maxh213/string_editor/blob/main/CHANGELOG.md" }
-
+  { title = "Repository", href = "https://github.com/maxh213/string_editor" },
+  { title = "Changelog", href = "https://github.com/maxh213/string_editor/blob/main/CHANGELOG.md" },
 ]
 #
 # For a full reference of all the available options, you can have a look at
 # https://gleam.run/writing-gleam/gleam-toml/.
 
-gleam = ">= 1.4.0"
+gleam = ">= 1.17.0"
 
 [dependencies]
-gleam_stdlib = ">= 0.34.0 and < 2.0.0"
+gleam_stdlib = ">= 1.0.0 and < 2.0.0"
 
 [dev-dependencies]
 gleeunit = ">= 1.0.0 and < 2.0.0"

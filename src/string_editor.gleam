@@ -204,12 +204,14 @@ pub fn before_all(string: String, on pattern: String) -> List(String) {
       case list.length(parts) {
         1 -> []
         _ -> {
-          list.range(1, list.length(parts) - 1)
-          |> list.map(fn(i) {
-            parts
-            |> list.take(i)
-            |> string.join(with: pattern)
+          int.range(from: 1, to: list.length(parts), with: [], run: fn(acc, i) {
+            let part =
+              parts
+              |> list.take(i)
+              |> string.join(with: pattern)
+            [part, ..acc]
           })
+          |> list.reverse
         }
       }
     }
@@ -234,12 +236,14 @@ pub fn after_all(string: String, on pattern: String) -> List(String) {
       case list.length(parts) {
         1 -> []
         _ -> {
-          list.range(1, list.length(parts) - 1)
-          |> list.map(fn(i) {
-            parts
-            |> list.drop(i)
-            |> string.join(with: pattern)
+          int.range(from: 1, to: list.length(parts), with: [], run: fn(acc, i) {
+            let part =
+              parts
+              |> list.drop(i)
+              |> string.join(with: pattern)
+            [part, ..acc]
           })
+          |> list.reverse
         }
       }
     }
