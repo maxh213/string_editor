@@ -3,7 +3,7 @@
 [![Package Version](https://img.shields.io/hexpm/v/string_editor)](https://hex.pm/packages/string_editor)
 [![Hex Docs](https://img.shields.io/badge/hex-docs-ffaff3)](https://hexdocs.pm/string_editor/)
 
-A Gleam library for string manipulation and extraction. Extract substrings before, after, or between specific patterns.
+A Gleam library for string manipulation and extraction. Extract or replace substrings before, after, or between specific patterns.
 
 ## Installation
 
@@ -23,8 +23,14 @@ pub fn main() -> Nil {
   // Extract text after a pattern  
   let assert Ok("world") = string_editor.after("hello world", on: " ")
   
+  // Extract text after the last occurrence of a pattern
+  let assert Ok("document.txt") = string_editor.after_last("/home/user/document.txt", on: "/")
+  
   // Extract text between two patterns
   let assert Ok("content") = string_editor.between("<div>content</div>", from: "<div>", to: "</div>")
+  
+  // Replace text between two patterns
+  let assert Ok("<div>new</div>") = string_editor.replace_between("<div>old</div>", from: "<div>", to: "</div>", with: "new")
   
   // Count occurrences of a pattern
   let count = string_editor.count("hello hello world", of: "hello") // 2
@@ -63,6 +69,32 @@ string_editor.after("hello world", on: " ")
 
 string_editor.after("no-match", on: "!")
 // Error(Nil)
+```
+
+### `before_last(string: String, on pattern: String) -> Result(String, Nil)`
+
+Returns the part of a string before the last occurrence of a given substring.
+
+**Examples:**
+```gleam
+string_editor.before_last("/home/user/document.txt", on: "/")
+// Ok("/home/user")
+
+string_editor.before_last("no-match", on: "!")
+// Error(Nil)
+```
+
+### `after_last(string: String, on pattern: String) -> Result(String, Nil)`
+
+Returns the part of a string after the last occurrence of a given substring.
+
+**Examples:**
+```gleam
+string_editor.after_last("/home/user/document.txt", on: "/")
+// Ok("document.txt")
+
+string_editor.after_last("archive.tar.gz", on: ".")
+// Ok("gz")
 ```
 
 ### `between(string: String, from start: String, to end: String) -> Result(String, Nil)`
@@ -172,6 +204,45 @@ string_editor.between_all("no matches here", from: "<div>", to: "</div>")
 // []
 ```
 
+### `replace_before(string: String, on pattern: String, with replacement: String) -> Result(String, Nil)`
+
+Replaces the part of a string before the first occurrence of a given substring, keeping the pattern itself.
+
+**Examples:**
+```gleam
+string_editor.replace_before("hello world", on: " ", with: "goodbye")
+// Ok("goodbye world")
+
+string_editor.replace_before("no-match", on: "!", with: "x")
+// Error(Nil)
+```
+
+### `replace_after(string: String, on pattern: String, with replacement: String) -> Result(String, Nil)`
+
+Replaces the part of a string after the first occurrence of a given substring, keeping the pattern itself.
+
+**Examples:**
+```gleam
+string_editor.replace_after("PORT=3000", on: "=", with: "8080")
+// Ok("PORT=8080")
+
+string_editor.replace_after("no-match", on: "!", with: "x")
+// Error(Nil)
+```
+
+### `replace_between(string: String, from start: String, to end: String, with replacement: String) -> Result(String, Nil)`
+
+Replaces the part of a string between two given substrings, keeping both delimiters. Operates on the first occurrence of `start` and the first occurrence of `end` after it.
+
+**Examples:**
+```gleam
+string_editor.replace_between("<a>old</a>", from: "<a>", to: "</a>", with: "new")
+// Ok("<a>new</a>")
+
+string_editor.replace_between("<h1>title</h1>", from: "<h1>", to: "</h2>", with: "x")
+// Error(Nil)
+```
+
 ## Common Use Cases
 
 ### HTML/XML Parsing
@@ -192,12 +263,16 @@ string_editor.count("<div>content</div><div>more</div>", of: "<div>")
 ### File Path Manipulation
 ```gleam
 // Get filename from path
-string_editor.after("/home/user/document.txt", on: "/")
+string_editor.after_last("/home/user/document.txt", on: "/")
 // Ok("document.txt")
 
-// Get file extension
-string_editor.after("document.txt", on: ".")
-// Ok("txt")
+// Get directory from path
+string_editor.before_last("/home/user/document.txt", on: "/")
+// Ok("/home/user")
+
+// Get file extension (handles multi-dot filenames)
+string_editor.after_last("archive.tar.gz", on: ".")
+// Ok("gz")
 
 // Get all directory components
 string_editor.after_all("/home/user/projects/myapp", on: "/")
@@ -220,6 +295,10 @@ string_editor.between("https://example.com/path", from: "://", to: "/")
 // Extract values from key=value pairs
 string_editor.after("DATABASE_URL=postgres://localhost", on: "=")
 // Ok("postgres://localhost")
+
+// Update a value while keeping the key
+string_editor.replace_after("PORT=3000", on: "=", with: "8080")
+// Ok("PORT=8080")
 
 // Parse all environment variables from a string
 string_editor.after_all("PORT=3000\nDB_HOST=localhost\nDB_PORT=5432", on: "=")
@@ -247,9 +326,9 @@ Functions have different return types based on their purpose:
 
 ### Result Functions
 Functions that return `Result(String, Nil)` return `Error(Nil)` when:
-- The pattern is not found in the string (`before`, `after`, `between`)
+- The pattern is empty, or is not found in the string (`before`, `after`, `before_last`, `after_last`, `between`, `replace_before`, `replace_after`, `replace_between`)
 - The pattern doesn't occur enough times (`before_at`, `after_at`, `between_at`)
-- For `between` functions, when either the start or end pattern is not found in the correct order
+- For `between` and `replace_between`, when either the start or end pattern is not found in the correct order
 
 ### Count Function
 `count()` always returns an `Int` (never fails), returning `0` when no matches are found.
@@ -257,154 +336,27 @@ Functions that return `Result(String, Nil)` return `Error(Nil)` when:
 ### List Functions
 `*_all` functions always return a `List(String)` (never fail), returning an empty list `[]` when no matches are found.
 
-## Performance Analysis
+## Performance Notes
 
-Here's an analysis of the performance characteristics of each function:
+All functions are built on `gleam/string` split operations and run in linear
+time over the input string.
 
-### `before()` and `after()` Functions
+| Functions | Time | Notes |
+| --- | --- | --- |
+| `before`, `after`, `replace_before`, `replace_after` | O(n) | `split_once` stops at the first match |
+| `before_last`, `after_last` | O(n) | single full split |
+| `between`, `between_at`, `replace_between` | O(n) | composed from the functions above |
+| `count` | O(n) | single full split, no regex compilation |
+| `*_at` | O(n) | splits once, then takes/drops parts |
+| `*_all` | O(n + m²) | rebuilds a prefix/suffix per match; m = match count, usually small |
 
-**Time Complexity:** O(n) where n is the length of the input string
-- Uses `string.split_once()` which performs a single pass through the string
-- Stops at the first occurrence of the pattern
-- Minimal string allocations for the result
+Guidelines:
 
-**Space Complexity:** O(k) where k is the length of the result substring
-- Returns only the required portion of the string
-- Minimal intermediate allocations
-- Memory usage primarily scales with output size
-
-**Performance Characteristics:**
-- **Best case:** Pattern found early in string - O(p) where p is position of pattern  
-- **Worst case:** Pattern not found - O(n) full string scan
-- **Memory usage:** Utilizes Gleam's standard string operations
-
-### `between()` Function
-
-**Time Complexity:** O(n) where n is the length of the input string
-- Makes two sequential calls to the underlying split operations
-- First finds the start pattern, then searches the remainder for the end pattern
-- Still linear overall as each character is examined at most twice
-
-**Space Complexity:** O(k) where k is the length of the extracted content
-- Creates one intermediate string (the portion after the start pattern)
-- Final result is a substring of that intermediate string
-- Memory usage remains proportional to output, not total input
-
-**Performance Characteristics:**
-- **Best case:** Both patterns found early - O(p₁ + p₂) where p₁, p₂ are pattern positions
-- **Worst case:** End pattern not found - O(n) where n is length after start pattern  
-- **Implementation:** Built on top of the `after()` and `before()` functions
-
-### `count()` Function
-
-**Time Complexity:** O(n) where n is the length of the input string
-- Uses `string.split()` which performs a single pass through the string
-- Counts splits by getting list length and subtracting 1
-- Handles edge cases (empty patterns) in constant time
-
-**Space Complexity:** O(m) where m is the number of splits
-- Creates a list of string parts during splitting
-- Memory scales with both the number of pattern occurrences and the size of the split parts
-- No regex compilation overhead for simple pattern matching
-
-**Performance Characteristics:**
-- **Best case:** Pattern not found - O(n) scan with minimal memory
-- **Worst case:** Many small patterns - O(n) time but higher memory for split results
-- **Counting approach:** Gets list length rather than iterating through results
-
-### Indexed Functions (`*_at`)
-
-**Time Complexity:** O(n) where n is the length of the input string
-- All use `string.split()` for initial parsing - single pass through string
-- List operations (`take`, `drop`, `join`) are O(m) where m is number of splits
-- Overall complexity remains O(n) as splits are bounded by string length
-
-**Space Complexity:** O(m) where m is the number of parts after splitting
-- Creates list of all split parts, even if only using subset
-- Result size is O(k) where k is length of extracted content
-- Uses more memory than basic functions when there are many pattern matches
-
-**Performance Characteristics:**
-- **Best case:** Low index with early patterns - O(n) time, minimal extra memory
-- **Worst case:** High index with many splits - O(n) time, O(m) space for all parts
-- **Index validation:** Bounds checking happens before processing
-
-### Multi-Instance Functions (`*_all`)
-
-**Time Complexity:** O(n + m²) where n is string length, m is number of splits
-- Initial split operation: O(n)
-- For each result position (m-1 results), rebuilds string from parts: O(m)
-- Overall: O(n + m²) where m is typically much smaller than n
-
-**Space Complexity:** O(m × k) where m is matches, k is average result length
-- Stores all results in a list
-- Each result requires reconstructing string from parts
-- Memory scales with both number of matches and their sizes
-
-**Performance Characteristics:**
-- **Best case:** Few patterns, short results - approaches O(n) 
-- **Worst case:** Many patterns creating large results - O(n + m²) time, O(m × k) space
-- **Batch processing:** Single split operation shared across all results
-
-### `between_all()` Function
-
-**Time Complexity:** O(n + m² + r) where n is input length, m is start matches, r is total results
-- Leverages `after_all()` for start pattern extraction: O(n + m²)
-- Filters each result through `before()`: O(r) where r ≤ m
-- Combined complexity: O(n + m² + r)
-
-**Space Complexity:** O(m × k + r × j) where k is average after_all result size, j is final result size
-- Intermediate storage for all `after_all` results
-- Final filtered results list
-- Memory peaks during intermediate step, then reduces after filtering
-
-**Performance Characteristics:**
-- **Best case:** Few start patterns, most have matching end patterns - O(n + m²)
-- **Worst case:** Many start patterns, few matching end patterns - O(n + m²) time, with higher intermediate memory usage
-- **Filtering approach:** Built-in filtering reduces final memory footprint
-
-### Real-World Performance Implications
-
-**Suitable for simple use cases involving:**
-- **Log parsing:** Extract basic timestamps, error codes, or specific fields from log entries (`count` for error frequency, `*_all` for batch extraction)
-- **Configuration files:** Parse simple key-value pairs or extract section content (`after_all` for all values, `count` for validation)
-- **HTML/XML processing:** Extract content from known, simple tag structures (`between_all` for multiple tags, `*_at` for specific positions)
-- **URL manipulation:** Extract basic domains, paths, or query parameters (`count` for segment counting, `before_at`/`after_at` for path navigation)
-- **CSV/TSV processing:** Navigate simple columnar data (`*_at` for specific columns, `count` for field validation)
-- **Template processing:** Extract and count basic placeholders (`between_all` for all variables, `count` for validation)
-
-**Scaling characteristics:**
-- **Large files:** Basic functions (`before`, `after`, `between`) scale linearly
-- **Multiple extractions:** `*_all` functions have O(m²) component but m is typically small
-- **Memory constrained environments:** Use basic functions when possible; `*_all` functions require more memory
-- **Batch processing:** `*_all` functions more efficient than repeated individual calls
-
-**Function Selection Guidelines:**
-- **Single extraction:** Use `before`, `after`, `between` for best performance
-- **Specific position:** Use `*_at` functions when you know the index
-- **Multiple results:** Use `*_all` functions for batch extraction
-- **Counting only:** Use `count` - most memory efficient for frequency analysis
-- **Large strings with many patterns:** Consider memory usage of `*_all` functions
-
-**Comparison with alternatives:**
-- **vs. Regular expressions:** May be faster for simple pattern matching due to no regex compilation step
-- **vs. Manual string iteration:** Comparable performance with built-in error handling and cleaner syntax
-- **vs. Split-based approaches:** Basic functions may be more efficient (stop at first match); `*_all` functions use full split but avoid repeated parsing
-- **vs. Multiple individual calls:** `*_all` functions may be more efficient than repeated calls for batch extractions
-
-### Optimization Tips
-
-1. **Pattern placement:** Consider placing the most unique part of your pattern first (may improve performance in some cases)
-2. **Function selection:** 
-   - Use `count` instead of `length(before_all(...))` for counting
-   - Use `*_at` when you know the specific index needed
-   - Use `*_all` for batch operations instead of multiple individual calls
-3. **For `between()` operations:** More unique start patterns improve performance
-4. **Memory considerations:** 
-   - Basic functions have lower memory overhead
-   - `*_all` functions create intermediate lists - consider this for large datasets
-   - `count` uses less memory when you only need frequency information
-5. **Pattern considerations:** Shorter, more specific patterns can reduce false matches
+- For a single extraction, prefer `before`/`after`/`between` — they stop at the
+  first match and allocate the least.
+- Use `count` rather than `list.length(before_all(...))`.
+- `*_all` functions allocate a list of results; for very large inputs with many
+  matches, keep their O(m²) rebuild cost in mind.
 
 ## Development
 

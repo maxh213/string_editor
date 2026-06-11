@@ -5,6 +5,28 @@ All notable changes to string_editor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.0] - 2026-06-11
+
+### Added
+- `before_last()` - Extract text before the last occurrence of a pattern
+- `after_last()` - Extract text after the last occurrence of a pattern
+  (e.g. filename from a path, extension from a multi-dot filename)
+- `replace_before()` - Replace text before the first occurrence of a pattern
+- `replace_after()` - Replace text after the first occurrence of a pattern
+- `replace_between()` - Replace text between two patterns, keeping the delimiters
+
+### Fixed
+- CI tested with Gleam 1.11.1, which is below the package's declared minimum
+  of 1.17.0 and failed to compile the package. CI now tests against both the
+  minimum supported Gleam version (1.17.0) and the latest 1.x release, and
+  also runs the test suite on the JavaScript target.
+- README "filename from path" example used `after()`, which returns the text
+  after the *first* `/` rather than the filename. The example now uses the new
+  `after_last()`.
+
+### Changed
+- Condensed the README performance section into a short complexity table.
+
 ## [1.0.4] - 2026-06-11
 
 ### Fixed

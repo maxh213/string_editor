@@ -308,3 +308,168 @@ pub fn after_all_repeated_pattern_test() {
   string_editor.after_all("ababab", on: "ab")
   |> should.equal(["abab", "ab", ""])
 }
+
+// `before_last` tests
+pub fn before_last_test() {
+  string_editor.before_last("/home/user/document.txt", on: "/")
+  |> should.equal(Ok("/home/user"))
+}
+
+pub fn before_last_single_occurrence_test() {
+  string_editor.before_last("hello world", on: " ")
+  |> should.equal(Ok("hello"))
+}
+
+pub fn before_last_not_found_test() {
+  string_editor.before_last("hello world", on: "!")
+  |> should.equal(Error(Nil))
+}
+
+pub fn before_last_empty_pattern_test() {
+  string_editor.before_last("hello world", on: "")
+  |> should.equal(Error(Nil))
+}
+
+pub fn before_last_pattern_at_start_test() {
+  string_editor.before_last("/file", on: "/")
+  |> should.equal(Ok(""))
+}
+
+// `after_last` tests
+pub fn after_last_test() {
+  string_editor.after_last("/home/user/document.txt", on: "/")
+  |> should.equal(Ok("document.txt"))
+}
+
+pub fn after_last_extension_test() {
+  string_editor.after_last("archive.tar.gz", on: ".")
+  |> should.equal(Ok("gz"))
+}
+
+pub fn after_last_single_occurrence_test() {
+  string_editor.after_last("hello world", on: " ")
+  |> should.equal(Ok("world"))
+}
+
+pub fn after_last_not_found_test() {
+  string_editor.after_last("hello world", on: "!")
+  |> should.equal(Error(Nil))
+}
+
+pub fn after_last_empty_pattern_test() {
+  string_editor.after_last("hello world", on: "")
+  |> should.equal(Error(Nil))
+}
+
+pub fn after_last_pattern_at_end_test() {
+  string_editor.after_last("trailing/", on: "/")
+  |> should.equal(Ok(""))
+}
+
+// `replace_before` tests
+pub fn replace_before_test() {
+  string_editor.replace_before("hello world", on: " ", with: "goodbye")
+  |> should.equal(Ok("goodbye world"))
+}
+
+pub fn replace_before_not_found_test() {
+  string_editor.replace_before("gleam is fun", on: "!", with: "x")
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_before_empty_pattern_test() {
+  string_editor.replace_before("hello", on: "", with: "x")
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_before_empty_replacement_test() {
+  string_editor.replace_before("hello world", on: " ", with: "")
+  |> should.equal(Ok(" world"))
+}
+
+pub fn replace_before_first_occurrence_test() {
+  string_editor.replace_before("a.b.c", on: ".", with: "x")
+  |> should.equal(Ok("x.b.c"))
+}
+
+// `replace_after` tests
+pub fn replace_after_test() {
+  string_editor.replace_after("hello world", on: " ", with: "gleam")
+  |> should.equal(Ok("hello gleam"))
+}
+
+pub fn replace_after_not_found_test() {
+  string_editor.replace_after("gleam is fun", on: "!", with: "x")
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_after_empty_pattern_test() {
+  string_editor.replace_after("hello", on: "", with: "x")
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_after_key_value_test() {
+  string_editor.replace_after("PORT=3000", on: "=", with: "8080")
+  |> should.equal(Ok("PORT=8080"))
+}
+
+// `replace_between` tests
+pub fn replace_between_test() {
+  string_editor.replace_between(
+    "<a>old</a>",
+    from: "<a>",
+    to: "</a>",
+    with: "new",
+  )
+  |> should.equal(Ok("<a>new</a>"))
+}
+
+pub fn replace_between_keeps_surroundings_test() {
+  string_editor.replace_between(
+    "before <a>old</a> after",
+    from: "<a>",
+    to: "</a>",
+    with: "new",
+  )
+  |> should.equal(Ok("before <a>new</a> after"))
+}
+
+pub fn replace_between_first_occurrence_test() {
+  string_editor.replace_between(
+    "<a>1</a><a>2</a>",
+    from: "<a>",
+    to: "</a>",
+    with: "x",
+  )
+  |> should.equal(Ok("<a>x</a><a>2</a>"))
+}
+
+pub fn replace_between_end_not_found_test() {
+  string_editor.replace_between(
+    "<h1>title</h1>",
+    from: "<h1>",
+    to: "</h2>",
+    with: "x",
+  )
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_between_start_not_found_test() {
+  string_editor.replace_between(
+    "plain text",
+    from: "<a>",
+    to: "</a>",
+    with: "x",
+  )
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_between_empty_patterns_test() {
+  string_editor.replace_between("hello", from: "", to: "", with: "x")
+  |> should.equal(Error(Nil))
+}
+
+pub fn replace_between_empty_replacement_test() {
+  string_editor.replace_between("<a>old</a>", from: "<a>", to: "</a>", with: "")
+  |> should.equal(Ok("<a></a>"))
+}

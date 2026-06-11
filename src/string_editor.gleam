@@ -47,6 +47,58 @@ pub fn after(string: String, on pattern: String) -> Result(String, Nil) {
   }
 }
 
+/// Returns the part of a string before the last occurrence of a given
+/// substring.
+///
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
+///
+/// ## Examples
+///
+///   > before_last("/home/user/document.txt", on: "/")
+///   Ok("/home/user")
+///
+///   > before_last("gleam is fun", on: "!")
+///   Error(Nil)
+///
+pub fn before_last(string: String, on pattern: String) -> Result(String, Nil) {
+  case pattern {
+    "" -> Error(Nil)
+    _ ->
+      case string.split(string, on: pattern) {
+        [] | [_] -> Error(Nil)
+        parts ->
+          parts
+          |> list.take(list.length(parts) - 1)
+          |> string.join(with: pattern)
+          |> Ok
+      }
+  }
+}
+
+/// Returns the part of a string after the last occurrence of a given
+/// substring.
+///
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
+///
+/// ## Examples
+///
+///   > after_last("/home/user/document.txt", on: "/")
+///   Ok("document.txt")
+///
+///   > after_last("gleam is fun", on: "!")
+///   Error(Nil)
+///
+pub fn after_last(string: String, on pattern: String) -> Result(String, Nil) {
+  case pattern {
+    "" -> Error(Nil)
+    _ ->
+      case string.split(string, on: pattern) {
+        [] | [_] -> Error(Nil)
+        parts -> list.last(parts)
+      }
+  }
+}
+
 /// Returns the part of a string between two given substrings.
 ///
 /// It finds the first occurrence of `start` and then the first
@@ -68,13 +120,12 @@ pub fn between(
   // The ending substring
   to end: String,
 ) -> Result(String, Nil) {
-  case after(string, on: start) {
-    Ok(after_start) -> before(after_start, on: end)
-    Error(e) -> Error(e)
-  }
+  use after_start <- result.try(after(string, on: start))
+  before(after_start, on: end)
 }
 
-/// Counts the number of occurrences of a substring in a string.
+/// Counts the number of non-overlapping occurrences of a substring in a
+/// string. An empty pattern always counts as `0`.
 ///
 /// ## Examples
 ///
@@ -83,6 +134,9 @@ pub fn between(
 ///
 ///   > count("gleam is fun", of: "rust")
 ///   0
+///
+///   > count("aaaa", of: "aa")
+///   2
 ///
 pub fn count(string: String, of pattern: String) -> Int {
   case pattern {
@@ -186,10 +240,8 @@ pub fn between_at(
   case start == "" || end == "" || index < 0 {
     True -> Error(Nil)
     False -> {
-      case after_at(string, on: start, at: index) {
-        Ok(after_start) -> before(after_start, on: end)
-        Error(e) -> Error(e)
-      }
+      use after_start <- result.try(after_at(string, on: start, at: index))
+      before(after_start, on: end)
     }
   }
 }
@@ -281,4 +333,75 @@ pub fn between_all(
       |> list.filter_map(fn(part) { before(part, on: end) })
     }
   }
+}
+
+/// Replaces the part of a string before the first occurrence of a given
+/// substring, keeping the pattern itself.
+///
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
+///
+/// ## Examples
+///
+///   > replace_before("hello world", on: " ", with: "goodbye")
+///   Ok("goodbye world")
+///
+///   > replace_before("gleam is fun", on: "!", with: "x")
+///   Error(Nil)
+///
+pub fn replace_before(
+  string: String,
+  on pattern: String,
+  with replacement: String,
+) -> Result(String, Nil) {
+  use rest <- result.try(after(string, on: pattern))
+  Ok(replacement <> pattern <> rest)
+}
+
+/// Replaces the part of a string after the first occurrence of a given
+/// substring, keeping the pattern itself.
+///
+/// If the substring is not found, or is empty, it returns `Error(Nil)`.
+///
+/// ## Examples
+///
+///   > replace_after("hello world", on: " ", with: "gleam")
+///   Ok("hello gleam")
+///
+///   > replace_after("gleam is fun", on: "!", with: "x")
+///   Error(Nil)
+///
+pub fn replace_after(
+  string: String,
+  on pattern: String,
+  with replacement: String,
+) -> Result(String, Nil) {
+  use prefix <- result.try(before(string, on: pattern))
+  Ok(prefix <> pattern <> replacement)
+}
+
+/// Replaces the part of a string between two given substrings, keeping
+/// both delimiters.
+///
+/// It finds the first occurrence of `start` and then the first
+/// occurrence of `end` after `start`. If either is not found in the
+/// correct order, or is empty, it returns `Error(Nil)`.
+///
+/// ## Examples
+///
+///   > replace_between("<a>old</a>", from: "<a>", to: "</a>", with: "new")
+///   Ok("<a>new</a>")
+///
+///   > replace_between("<h1>title</h1>", from: "<h1>", to: "</h2>", with: "x")
+///   Error(Nil)
+///
+pub fn replace_between(
+  string: String,
+  from start: String,
+  to end: String,
+  with replacement: String,
+) -> Result(String, Nil) {
+  use prefix <- result.try(before(string, on: start))
+  use rest <- result.try(after(string, on: start))
+  use suffix <- result.try(after(rest, on: end))
+  Ok(prefix <> start <> replacement <> end <> suffix)
 }
