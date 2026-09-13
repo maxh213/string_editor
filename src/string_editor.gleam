@@ -66,12 +66,15 @@ pub fn before_last(string: String, on pattern: String) -> Result(String, Nil) {
     _ ->
       case string.split(string, on: pattern) {
         [] | [_] -> Error(Nil)
-        parts ->
-          parts
-          |> list.take(list.length(parts) - 1)
-          |> string.join(with: pattern)
-          |> Ok
+        [first, ..rest] -> Ok(join_init(rest, pattern, first))
       }
+  }
+}
+
+fn join_init(parts: List(String), pattern: String, acc: String) -> String {
+  case parts {
+    [] | [_] -> acc
+    [part, ..rest] -> join_init(rest, pattern, acc <> pattern <> part)
   }
 }
 
