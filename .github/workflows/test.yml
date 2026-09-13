@@ -22,10 +22,10 @@ jobs:
             check-format: true
     name: test (gleam ${{ matrix.gleam-version }})
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: erlef/setup-beam@v1
         with:
-          otp-version: "27.1.2"
+          otp-version: "29.0.6"
           gleam-version: ${{ matrix.gleam-version }}
           rebar3-version: "3"
           # elixir-version: "1"
