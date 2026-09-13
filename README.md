@@ -347,16 +347,15 @@ time over the input string.
 | `before_last`, `after_last` | O(n) | single full split |
 | `between`, `between_at`, `replace_between` | O(n) | composed from the functions above |
 | `count` | O(n) | single full split, no regex compilation |
-| `*_at` | O(n) | splits once, then takes/drops parts |
-| `*_all` | O(n + m²) | rebuilds a prefix/suffix per match; m = match count, usually small |
+| `*_at` | O(n) | stops at the nth match |
+| `*_all` | O(n) | one left-to-right pass; `between_all` stops once `end` is missing |
 
 Guidelines:
 
 - For a single extraction, prefer `before`/`after`/`between` — they stop at the
   first match and allocate the least.
 - Use `count` rather than `list.length(before_all(...))`.
-- `*_all` functions allocate a list of results; for very large inputs with many
-  matches, keep their O(m²) rebuild cost in mind.
+- `*_all` functions allocate a list of results, one entry per match.
 
 ## Development
 

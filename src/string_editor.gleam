@@ -170,18 +170,28 @@ pub fn before_at(
 ) -> Result(String, Nil) {
   case pattern == "" || index < 0 {
     True -> Error(Nil)
-    False -> {
-      let parts = string.split(string, on: pattern)
-      case list.length(parts) > index + 1 {
-        True -> {
-          parts
-          |> list.take(index + 1)
-          |> string.join(with: pattern)
-          |> Ok
-        }
-        False -> Error(Nil)
+    False ->
+      case string.split_once(string, on: pattern) {
+        Error(Nil) -> Error(Nil)
+        Ok(#(first, rest)) -> before_at_loop(rest, pattern, index, first)
       }
-    }
+  }
+}
+
+fn before_at_loop(
+  rest: String,
+  pattern: String,
+  index: Int,
+  prefix: String,
+) -> Result(String, Nil) {
+  case index {
+    0 -> Ok(prefix)
+    _ ->
+      case string.split_once(rest, on: pattern) {
+        Error(Nil) -> Error(Nil)
+        Ok(#(piece, rest)) ->
+          before_at_loop(rest, pattern, index - 1, prefix <> pattern <> piece)
+      }
   }
 }
 
@@ -204,18 +214,22 @@ pub fn after_at(
 ) -> Result(String, Nil) {
   case pattern == "" || index < 0 {
     True -> Error(Nil)
-    False -> {
-      let parts = string.split(string, on: pattern)
-      case list.length(parts) > index + 1 {
-        True -> {
-          parts
-          |> list.drop(index + 1)
-          |> string.join(with: pattern)
-          |> Ok
-        }
-        False -> Error(Nil)
+    False -> after_at_loop(string, pattern, index)
+  }
+}
+
+fn after_at_loop(
+  string: String,
+  pattern: String,
+  index: Int,
+) -> Result(String, Nil) {
+  case string.split_once(string, on: pattern) {
+    Error(Nil) -> Error(Nil)
+    Ok(#(_, rest)) ->
+      case index {
+        0 -> Ok(rest)
+        _ -> after_at_loop(rest, pattern, index - 1)
       }
-    }
   }
 }
 
@@ -259,21 +273,25 @@ pub fn between_at(
 pub fn before_all(string: String, on pattern: String) -> List(String) {
   case pattern == "" {
     True -> []
-    False -> {
-      let parts = string.split(string, on: pattern)
-      case list.length(parts) {
-        1 -> []
-        _ -> {
-          int.range(from: 1, to: list.length(parts), with: [], run: fn(acc, i) {
-            let part =
-              parts
-              |> list.take(i)
-              |> string.join(with: pattern)
-            [part, ..acc]
-          })
-          |> list.reverse
-        }
+    False ->
+      case string.split(string, on: pattern) {
+        [] | [_] -> []
+        [first, ..rest] -> before_all_loop(rest, pattern, first, [first])
       }
+  }
+}
+
+fn before_all_loop(
+  parts: List(String),
+  pattern: String,
+  prefix: String,
+  acc: List(String),
+) -> List(String) {
+  case parts {
+    [] | [_] -> list.reverse(acc)
+    [part, ..rest] -> {
+      let prefix = prefix <> pattern <> part
+      before_all_loop(rest, pattern, prefix, [prefix, ..acc])
     }
   }
 }
@@ -289,24 +307,20 @@ pub fn before_all(string: String, on pattern: String) -> List(String) {
 ///   []
 ///
 pub fn after_all(string: String, on pattern: String) -> List(String) {
-  case pattern == "" {
-    True -> []
-    False -> {
-      let parts = string.split(string, on: pattern)
-      case list.length(parts) {
-        1 -> []
-        _ -> {
-          int.range(from: 1, to: list.length(parts), with: [], run: fn(acc, i) {
-            let part =
-              parts
-              |> list.drop(i)
-              |> string.join(with: pattern)
-            [part, ..acc]
-          })
-          |> list.reverse
-        }
-      }
-    }
+  case pattern {
+    "" -> []
+    _ -> after_all_loop(string, pattern, [])
+  }
+}
+
+fn after_all_loop(
+  string: String,
+  pattern: String,
+  acc: List(String),
+) -> List(String) {
+  case string.split_once(string, on: pattern) {
+    Ok(#(_, rest)) -> after_all_loop(rest, pattern, [rest, ..acc])
+    Error(Nil) -> list.reverse(acc)
   }
 }
 
@@ -327,11 +341,24 @@ pub fn between_all(
 ) -> List(String) {
   case start == "" || end == "" {
     True -> []
-    False -> {
-      let after_parts = after_all(string, on: start)
-      after_parts
-      |> list.filter_map(fn(part) { before(part, on: end) })
-    }
+    False -> between_all_loop(string, start, end, [])
+  }
+}
+
+fn between_all_loop(
+  string: String,
+  start: String,
+  end: String,
+  acc: List(String),
+) -> List(String) {
+  case string.split_once(string, on: start) {
+    Error(Nil) -> list.reverse(acc)
+    Ok(#(_, rest)) ->
+      case string.split_once(rest, on: end) {
+        Ok(#(inner, _)) -> between_all_loop(rest, start, end, [inner, ..acc])
+        // Every later suffix is a tail of `rest`, so none can contain `end`.
+        Error(Nil) -> list.reverse(acc)
+      }
   }
 }
 
@@ -400,8 +427,17 @@ pub fn replace_between(
   to end: String,
   with replacement: String,
 ) -> Result(String, Nil) {
-  use prefix <- result.try(before(string, on: start))
-  use rest <- result.try(after(string, on: start))
-  use suffix <- result.try(after(rest, on: end))
-  Ok(prefix <> start <> replacement <> end <> suffix)
+  case start == "" || end == "" {
+    True -> Error(Nil)
+    False ->
+      case string.split_once(string, on: start) {
+        Error(Nil) -> Error(Nil)
+        Ok(#(prefix, rest)) ->
+          case string.split_once(rest, on: end) {
+            Error(Nil) -> Error(Nil)
+            Ok(#(_, suffix)) ->
+              Ok(prefix <> start <> replacement <> end <> suffix)
+          }
+      }
+  }
 }

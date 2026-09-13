@@ -5,6 +5,24 @@ All notable changes to string_editor will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2026-09-13
+
+### Changed
+- `before_all()`, `after_all()` and `between_all()` now run in a single
+  left-to-right pass instead of rebuilding a prefix/suffix per match
+  (O(n) rather than O(n·m)). On a 100KB input with thousands of matches this
+  goes from seconds to milliseconds on Erlang, and no longer runs out of memory
+  on JavaScript. `between_all()` also stops as soon as `end` is missing.
+- `before_at()`, `after_at()` (and so `between_at()`) stop at the requested
+  match instead of splitting the whole string. Small indexes on large inputs
+  are orders of magnitude faster; on JavaScript, an index near or past the
+  last match can be up to ~2x slower.
+- `replace_between()` scans for `start` once instead of twice.
+- Updated `gleam_stdlib` to 1.0.5.
+- CI now uses `actions/checkout@v7` and Erlang/OTP 29.0.6.
+
+Behaviour is unchanged on both targets. Still supports Gleam >= 1.17.0.
+
 ## [1.1.0] - 2026-06-11
 
 ### Added
